@@ -148,11 +148,11 @@ await client.verifySession(
 
 ```ts
 import {
+  generateSalt,
   derivePrivateKey,
-  deriveSession,
   deriveVerifier,
   generateEphemeral,
-  generateSalt,
+  deriveSession,
   verifySession,
 } from "@zoontek/secure-remote-password/client";
 ```
@@ -209,8 +209,8 @@ Verifies the server provided session proof. Throws an error if the session proof
 
 ```ts
 import {
-  deriveSession,
   generateEphemeral,
+  deriveSession,
 } from "@zoontek/secure-remote-password/server";
 ```
 
