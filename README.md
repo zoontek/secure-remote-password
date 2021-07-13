@@ -155,37 +155,27 @@ import {
   deriveSession,
   verifySession,
 } from "@zoontek/secure-remote-password/client";
-```
 
-```ts
 type generateSalt = () => string;
-```
 
-Generate a salt suitable for computing the verifier with.
+// Generate a salt suitable for computing the verifier with.
 
-```ts
 type derivePrivateKey = (
   salt: string,
   username: string,
   password: string,
 ) => Promise<string>;
-```
 
-Derives a private key suitable for computing the verifier with.
+// Derives a private key suitable for computing the verifier with.
 
-```ts
 type deriveVerifier = (privateKey: string) => string;
-```
 
-Derive a verifier to be stored for subsequent authentication attempts.
+// Derive a verifier to be stored for subsequent authentication attempts.
 
-```ts
 type generateEphemeral = () => Ephemeral;
-```
 
-Generate ephemeral values used to initiate an authentication session.
+// Generate ephemeral values used to initiate an authentication session.
 
-```ts
 type deriveSession = (
   clientSecretEphemeral: string,
   serverPublicEphemeral: string,
@@ -193,34 +183,28 @@ type deriveSession = (
   username: string,
   privateKey: string,
 ) => Promise<Session>;
-```
 
-Compute a session key and proof. The proof is to be sent to the server for verification.
+// Compute a session key and proof. The proof is to be sent to the server for verification.
 
-```ts
 type verifySession = (
   clientPublicEphemeral: string,
   clientSession: Session,
   serverSessionProof: string,
 ) => Promise<void>;
-```
 
-Verifies the server provided session proof. Throws an error if the session proof is invalid.
+// Verifies the server provided session proof. Throws an error if the session proof is invalid.
+```
 
 ```ts
 import {
   generateEphemeral,
   deriveSession,
 } from "@zoontek/secure-remote-password/server";
-```
 
-```ts
 type generateEphemeral = (verifier: string) => Promise<Ephemeral>;
-```
 
-Generate ephemeral values used to continue an authentication session.
+// Generate ephemeral values used to continue an authentication session.
 
-```ts
 type deriveSession = (
   serverSecretEphemeral: string,
   clientPublicEphemeral: string,
@@ -229,8 +213,7 @@ type deriveSession = (
   verifier: string,
   clientSessionProof: string,
 ) => Promise<Session>;
+
+// Compute a session key and proof. The proof is to be sent to the client for verification.
+// Throws an error if the session proof from the client is invalid.
 ```
-
-Compute a session key and proof. The proof is to be sent to the client for verification.
-
-Throws an error if the session proof from the client is invalid.
