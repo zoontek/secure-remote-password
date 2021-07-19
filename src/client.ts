@@ -1,12 +1,11 @@
+import { BigInteger } from "jsbn";
 import { params } from "./params";
-import { SRPInt } from "./SRPInt";
 import { Ephemeral, Session } from "./types";
-
-export * from "./types";
+import { bigIntToHex, randomBigInt } from "./utils";
 
 export const generateSalt = (): string => {
-  const s = SRPInt.randomInteger(params.hashOutputBytes); // User's salt
-  return s.toHex();
+  const s = randomBigInt(params.hashOutputBytes); // User's salt
+  return bigIntToHex(s);
 };
 
 export const derivePrivateKey = async (
@@ -16,32 +15,32 @@ export const derivePrivateKey = async (
 ): Promise<string> => {
   const { H } = params;
 
-  const s = SRPInt.fromHex(salt); // User's salt
-  const I = String(username); // Username
-  const p = String(password); // Cleartext Password
+  const s = new BigInteger(salt, 16); // User's salt
+  const I = username; // Username
+  const p = password; // Cleartext Password
 
   // x = H(s, H(I | ':' | p))
   const x = await H(s, await H(`${I}:${p}`));
-  return x.toHex();
+  return bigIntToHex(x);
 };
 
 export const deriveVerifier = (privateKey: string): string => {
   const { N, g } = params;
 
-  const x = SRPInt.fromHex(privateKey); // Private key (derived from p and s)
+  const x = new BigInteger(privateKey, 16); // Private key (derived from p and s)
   const v = g.modPow(x, N); // v = g^x (computes password verifier)
-  return v.toHex();
+  return bigIntToHex(v);
 };
 
 export const generateEphemeral = (): Ephemeral => {
   const { N, g } = params;
 
-  const a = SRPInt.randomInteger(params.hashOutputBytes);
+  const a = randomBigInt(params.hashOutputBytes);
   const A = g.modPow(a, N); // A = g^a
 
   return {
-    secret: a.toHex(),
-    public: A.toHex(),
+    secret: bigIntToHex(a),
+    public: bigIntToHex(A),
   };
 };
 
@@ -54,16 +53,16 @@ export const deriveSession = async (
 ): Promise<Session> => {
   const { N, g, k, H } = params;
 
-  const a = SRPInt.fromHex(clientSecretEphemeral); // Secret ephemeral values
-  const B = SRPInt.fromHex(serverPublicEphemeral); // Public ephemeral values
-  const s = SRPInt.fromHex(salt); // User's salt
+  const a = new BigInteger(clientSecretEphemeral, 16); // Secret ephemeral values
+  const B = new BigInteger(serverPublicEphemeral, 16); // Public ephemeral values
+  const s = new BigInteger(salt, 16); // User's salt
   const I = username; // Username
-  const x = SRPInt.fromHex(privateKey); // Private key (derived from p and s)
+  const x = new BigInteger(privateKey, 16); // Private key (derived from p and s)
 
   const A = g.modPow(a, N); // A = g^a
 
   // B % N > 0
-  if (B.mod(N).equals(SRPInt.ZERO)) {
+  if (B.mod(N).equals(BigInteger.ZERO)) {
     // fixme: .code, .statusCode, etc.
     throw new Error("The server sent an invalid public ephemeral");
   }
@@ -81,8 +80,8 @@ export const deriveSession = async (
   const M = await H(HN.xor(Hg), HI, s, A, B, K);
 
   return {
-    key: K.toHex(),
-    proof: M.toHex(),
+    key: bigIntToHex(K),
+    proof: bigIntToHex(M),
   };
 };
 
@@ -93,12 +92,12 @@ export const verifySession = async (
 ): Promise<void> => {
   const { H } = params;
 
-  const A = SRPInt.fromHex(clientPublicEphemeral); // Public ephemeral values
-  const M = SRPInt.fromHex(clientSession.proof); // Proof of K
-  const K = SRPInt.fromHex(clientSession.key); // Shared, strong session key
+  const A = new BigInteger(clientPublicEphemeral, 16); // Public ephemeral values
+  const M = new BigInteger(clientSession.proof, 16); // Proof of K
+  const K = new BigInteger(clientSession.key, 16); // Shared, strong session key
 
   const expected = await H(A, M, K);
-  const actual = SRPInt.fromHex(serverSessionProof);
+  const actual = new BigInteger(serverSessionProof, 16);
 
   if (!actual.equals(expected)) {
     // fixme: .code, .statusCode, etc.

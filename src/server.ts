@@ -1,21 +1,20 @@
+import { BigInteger } from "jsbn";
 import { params } from "./params";
-import { SRPInt } from "./SRPInt";
 import { Ephemeral, Session } from "./types";
-
-export * from "./types";
+import { bigIntToHex, randomBigInt } from "./utils";
 
 export const generateEphemeral = async (
   verifier: string,
 ): Promise<Ephemeral> => {
   const { N, g, k } = params;
 
-  const v = SRPInt.fromHex(verifier); // Password verifier
-  const b = SRPInt.randomInteger(params.hashOutputBytes);
+  const v = new BigInteger(verifier, 16); // Password verifier
+  const b = randomBigInt(params.hashOutputBytes);
   const B = (await k).multiply(v).add(g.modPow(b, N)).mod(N); // B = kv + g^b
 
   return {
-    secret: b.toHex(),
-    public: B.toHex(),
+    secret: bigIntToHex(b),
+    public: bigIntToHex(B),
   };
 };
 
@@ -29,16 +28,16 @@ export const deriveSession = async (
 ): Promise<Session> => {
   const { N, g, k, H } = params;
 
-  const b = SRPInt.fromHex(serverSecretEphemeral); // Secret ephemeral values
-  const A = SRPInt.fromHex(clientPublicEphemeral); // Public ephemeral values
-  const s = SRPInt.fromHex(salt); // User's salt
+  const b = new BigInteger(serverSecretEphemeral, 16); // Secret ephemeral values
+  const A = new BigInteger(clientPublicEphemeral, 16); // Public ephemeral values
+  const s = new BigInteger(salt, 16); // User's salt
   const I = username; // Username
-  const v = SRPInt.fromHex(verifier); // Password verifier
+  const v = new BigInteger(verifier, 16); // Password verifier
 
   const B = (await k).multiply(v).add(g.modPow(b, N)).mod(N); // B = kv + g^b
 
   // A % N > 0
-  if (A.mod(N).equals(SRPInt.ZERO)) {
+  if (A.mod(N).equals(BigInteger.ZERO)) {
     // fixme: .code, .statusCode, etc.
     throw new Error("The client sent an invalid public ephemeral");
   }
@@ -52,7 +51,7 @@ export const deriveSession = async (
   const M = await H(HN.xor(Hg), HI, s, A, B, K);
 
   const expected = M;
-  const actual = SRPInt.fromHex(clientSessionProof);
+  const actual = new BigInteger(clientSessionProof, 16);
 
   if (!actual.equals(expected)) {
     // fixme: .code, .statusCode, etc.
@@ -62,7 +61,7 @@ export const deriveSession = async (
   const P = await H(A, M, K);
 
   return {
-    key: K.toHex(),
-    proof: P.toHex(),
+    key: bigIntToHex(K),
+    proof: bigIntToHex(P),
   };
 };

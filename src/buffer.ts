@@ -31,23 +31,19 @@ export const bufferToHex = (buffer: ArrayBufferLike): string => {
   const view = new Uint8Array(buffer);
   let result = "";
 
-  for (let i = 0; i < view.length; i++) {
-    const value = view[i].toString(16);
-    result += value.length === 1 ? "0" + value : value;
+  for (let index = 0; index < view.length; index++) {
+    result += view[index].toString(16).padStart(2, "0");
   }
 
   return result;
 };
 
 export const hexToBuffer = (hex: string): ArrayBufferLike => {
-  if (hex.length % 2 !== 0) {
-    throw new RangeError("Expected string to be an even number of characters");
-  }
+  const length = Math.ceil(hex.length / 2);
+  const view = new Uint8Array(length);
 
-  const view = new Uint8Array(hex.length / 2);
-
-  for (let i = 0; i < hex.length; i += 2) {
-    view[i / 2] = parseInt(hex.substring(i, i + 2), 16);
+  for (let index = 0; index < length; index++) {
+    view[index] = parseInt(hex.substr(index * 2, 2).padStart(2, "0"), 16);
   }
 
   return view.buffer;

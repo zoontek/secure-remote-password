@@ -1,7 +1,34 @@
-import { sha256 } from "./sha256";
-import { SRPInt } from "./SRPInt";
+import { BigInteger } from "jsbn";
+import { bufferToHex, hexToBuffer } from "./buffer";
+import { crypto } from "./crypto";
+import { bigIntToHex } from "./utils";
 
-const fromHex = (input: string) => SRPInt.fromHex(input.replace(/\s+/g, ""));
+const encodeUtf8 = TextEncoder.prototype.encode.bind(new TextEncoder());
+
+export const sha256 = async (...input: (BigInteger | string)[]) => {
+  const buffers = input.map((item) =>
+    typeof item === "string"
+      ? encodeUtf8(item)
+      : hexToBuffer(bigIntToHex(item)),
+  );
+
+  const combined = new Uint8Array(
+    buffers.reduce((offset, item) => offset + item.byteLength, 0),
+  );
+
+  buffers.reduce((offset, item) => {
+    combined.set(new Uint8Array(item), offset);
+    return offset + item.byteLength;
+  }, 0);
+
+  return new BigInteger(
+    bufferToHex(await crypto.subtle.digest("SHA-256", combined.buffer)),
+    16,
+  );
+};
+
+const fromHex = (input: string) =>
+  new BigInteger(input.replace(/\s+/g, ""), 16);
 
 const N = fromHex(`
   AC6BDB41 324A9A9B F166DE5E 1389582F AF72B665 1987EE07 FC319294
@@ -16,7 +43,7 @@ const N = fromHex(`
   9E4AFF73
 `);
 
-const g = fromHex("02");
+const g = new BigInteger("2");
 const k = sha256(N, g);
 
 export const params = {

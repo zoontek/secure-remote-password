@@ -5,9 +5,10 @@
     "module": "ES2015",
     "lib": ["ES2015", "DOM"],
     "moduleResolution": "Node",
-    "outDir": "dist/",
 
     "declaration": true,
+    "esModuleInterop": true,
+    "noEmit": true,
     "sourceMap": true,
     "strict": true,
     "stripInternal": true,
