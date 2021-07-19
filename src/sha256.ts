@@ -2,13 +2,11 @@ import { bufferToHex, hexToBuffer } from "./buffer";
 import { crypto } from "./crypto";
 import { SRPInt } from "./SRPInt";
 
-const textEncoder = new TextEncoder();
+const encodeUtf8 = TextEncoder.prototype.encode.bind(new TextEncoder());
 
 export const sha256 = async (...input: (SRPInt | string)[]) => {
   const buffers = input.map((item) =>
-    typeof item === "string"
-      ? textEncoder.encode(item)
-      : hexToBuffer(item.toHex()),
+    typeof item === "string" ? encodeUtf8(item) : hexToBuffer(item.toHex()),
   );
 
   const combined = new Uint8Array(
