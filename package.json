@@ -14,11 +14,6 @@
   },
   "source": "src/index.ts",
   "main": "dist/index.js",
-  "exports": {
-    ".": "./dist/index.js",
-    "./client": "./dist/client.js",
-    "./server": "./dist/server.js"
-  },
   "files": [
     "dist"
   ],
@@ -30,7 +25,7 @@
     "password"
   ],
   "scripts": {
-    "build": "yarn clean && microbundle -f cjs src/{index,client,server}.ts",
+    "build": "yarn clean && microbundle -f cjs,esm src/index.ts",
     "clean": "rm -rf dist",
     "dev": "microbundle watch",
     "format": "prettier '**/*.{js,md,ts,tsx}' --write",
